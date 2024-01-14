@@ -1,19 +1,19 @@
 package com.example.masterand
 
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.masterand.viewModel.ProfileViewModel
 
 @Composable
-fun SetupNavGraph(navController: NavHostController) {
+fun SetupNavGraph(navController: NavHostController, profileViewModel: ProfileViewModel) {
 
     NavHost(navController = navController, startDestination = "login_screen") {
         composable(route = Screen.Login.route) {
-            LoginScreen(navController = navController)
+            LoginScreen(navController = navController, profileViewModel = profileViewModel)
         }
 
         composable(

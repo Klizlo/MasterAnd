@@ -1,6 +1,7 @@
 package com.example.masterand
 
 import android.net.Uri
+import android.util.Log
 import android.util.Patterns.EMAIL_ADDRESS
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,9 +46,14 @@ import androidx.core.text.isDigitsOnly
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.masterand.database.MasterAndDatabase
+import com.example.masterand.model.Profile
+import com.example.masterand.repository.ProfileRepository
+import com.example.masterand.repository.ProfileRepositoryImpl
+import com.example.masterand.viewModel.ProfileViewModel
 
 @Composable
-fun LoginScreen(navController: NavHostController){
+fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewModel){
 
     val name = rememberSaveable{ mutableStateOf("") }
     val isNameError = rememberSaveable { mutableStateOf(false) }
@@ -107,12 +114,19 @@ fun LoginScreen(navController: NavHostController){
         )
         Button(
             onClick = {
-                if ( validate(text = name.value, isError = isNameError, validator = { text: String -> text.isNotEmpty() }) &&
-                    validate(text = email.value, isError = isEmailError, validator = { text: String -> text.isNotEmpty() && EMAIL_ADDRESS.matcher(text).matches() }) &&
-                    validate(text = number.value, isError = isNumberError, validator = { text: String -> text.isNotEmpty() && text.isDigitsOnly() && text.toInt() >= 4 && text.toInt() <= 7})
-                    ){
-                    navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
-                }
+//                Log.i("Tu", "LoginScreen: Tutu")
+//                if ( !isEmailError.value && !isNameError.value && !isNumberError.value) {
+//                    Log.i("TuTu", "LoginScreen: Tutututu")
+//                    if (profileViewModel.existsByEmail(email.value)) {
+//                        Log.i("TuTuTu", "LoginScreen: Tutututututu")
+//                        val profile : Profile = Profile(email = email.value, name = name.value)
+//                        profileViewModel.insertProfile(profile)
+//                        navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
+//                    } else {
+//                        isEmailError.value = true
+//                    }
+//                }
+                navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -141,7 +155,7 @@ fun OutlinedTextFieldWithError(label: String, supportingText: String, validation
         ),
         isError = isError.value,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        supportingText = { if (!validation(text.value) || isError.value) {
+        supportingText = { if (!validation(text.value)) {
             Text(text = supportingText)
             isError.value = true
         } else {
@@ -226,8 +240,12 @@ private fun ProfileImageWithPicker(profileImageUri: Uri?, selectImageOnClick: ()
 fun LoginScreenPreview(){
 
     val navHostController = rememberNavController()
+    val database : MasterAndDatabase = MasterAndDatabase.getDatabase(LocalContext.current)
+    val profileRepository: ProfileRepository = ProfileRepositoryImpl(database.getProfileDao())
 
-    LoginScreen(navController = navHostController)
+    val profileViewModel : ProfileViewModel = ProfileViewModel(profileRepository)
+
+    LoginScreen(navController = navHostController, profileViewModel = profileViewModel)
 }
 
 private fun validate(text: String, isError: MutableState<Boolean>, validator: (String) -> Boolean) : Boolean {
