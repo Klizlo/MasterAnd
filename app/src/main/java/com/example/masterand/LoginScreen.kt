@@ -1,11 +1,15 @@
 package com.example.masterand
 
 import android.net.Uri
-import android.util.Log
 import android.util.Patterns.EMAIL_ADDRESS
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,12 +34,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -47,7 +54,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.masterand.database.MasterAndDatabase
-import com.example.masterand.model.Profile
 import com.example.masterand.repository.ProfileRepository
 import com.example.masterand.repository.ProfileRepositoryImpl
 import com.example.masterand.viewModel.ProfileViewModel
@@ -70,6 +76,14 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
         imageUri.value = it
     }
 
+    //Animacje
+    val infiniteTransition = rememberInfiniteTransition()
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1.2F,
+        targetValue = 0.8F,
+        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
+    )
+
     Column (
         modifier = Modifier
             .fillMaxSize()
@@ -83,6 +97,11 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
             style = MaterialTheme.typography.displayLarge,
             modifier = Modifier
                 .padding(bottom = 48.dp)
+                .graphicsLayer {
+                    scaleX = scale
+                    scaleY = scale
+                    transformOrigin = TransformOrigin.Center
+                }
             )
         ProfileImageWithPicker(profileImageUri = imageUri.value, selectImageOnClick = {
             photoPicker
@@ -126,7 +145,9 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
 //                        isEmailError.value = true
 //                    }
 //                }
-                navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
+                if(!isEmailError.value && !isNameError.value && !isNameError.value) {
+                    navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -246,11 +267,4 @@ fun LoginScreenPreview(){
     val profileViewModel : ProfileViewModel = ProfileViewModel(profileRepository)
 
     LoginScreen(navController = navHostController, profileViewModel = profileViewModel)
-}
-
-private fun validate(text: String, isError: MutableState<Boolean>, validator: (String) -> Boolean) : Boolean {
-
-    isError.value = !validator(text)
-
-    return !isError.value
 }

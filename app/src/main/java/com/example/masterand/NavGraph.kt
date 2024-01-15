@@ -1,5 +1,11 @@
 package com.example.masterand
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -11,7 +17,24 @@ import com.example.masterand.viewModel.ProfileViewModel
 @Composable
 fun SetupNavGraph(navController: NavHostController, profileViewModel: ProfileViewModel) {
 
-    NavHost(navController = navController, startDestination = "login_screen") {
+    NavHost(navController = navController, startDestination = "login_screen",
+        enterTransition = {
+            fadeIn(
+                animationSpec = tween(1000, easing = EaseIn)
+            ) + slideIntoContainer(
+                animationSpec = tween(1000, easing = EaseIn),
+                towards = AnimatedContentTransitionScope.SlideDirection.Left
+            )
+        },
+        exitTransition =  {
+            fadeOut(
+                animationSpec = tween(1000, easing = EaseOut)
+            ) + slideOutOfContainer(
+                animationSpec = tween(1000, easing = EaseOut),
+                towards = AnimatedContentTransitionScope.SlideDirection.Right
+            )
+        }
+    ) {
         composable(route = Screen.Login.route) {
             LoginScreen(navController = navController, profileViewModel = profileViewModel)
         }
