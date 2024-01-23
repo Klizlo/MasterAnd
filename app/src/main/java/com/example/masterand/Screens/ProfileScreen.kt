@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -43,8 +44,12 @@ fun ProfileScreenPreview() {
 }
 
 @Composable
-fun ProfileScreen(navController: NavHostController, uri: String?, profileId: Long, number: Int, 
-                  profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
+fun ProfileScreen(navController: NavHostController, uri: String?, profileId: Long, number: Int,
+                  // bez wstrzykiwania
+//                  profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
+                  // przy użyciu hilt
+                  profileViewModel: ProfileViewModel = hiltViewModel<ProfileViewModel>()
+) {
     
     LaunchedEffect(key1 = profileViewModel.profileId) {
         profileViewModel.getProfileById(profileId = profileId)

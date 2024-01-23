@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -78,7 +79,11 @@ val gameColors = listOf(
 
 @Composable
 fun GameMainScreen(navController: NavHostController, number: Int, profileId: Long,
-                   scoreViewModel: ScoreViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
+                   // bez wstrzykiwania
+//                   scoreViewModel: ScoreViewModel = viewModel(factory = AppViewModelProvider.Factory)
+                   // przy użyciu hilt
+                   scoreViewModel: ScoreViewModel = hiltViewModel<ScoreViewModel>()
+) {
 
     val selectedColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }
     val feedbackColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }

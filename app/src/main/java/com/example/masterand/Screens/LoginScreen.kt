@@ -52,6 +52,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -67,7 +68,11 @@ import navigation.Screen
 
 @Composable
 fun LoginScreen(navController: NavHostController,
-                profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)){
+                // bez wstrzykiwania
+                //profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)
+                // przy użyciu hilt
+                profileViewModel: ProfileViewModel = hiltViewModel<ProfileViewModel>()
+                ){
 
     val isNameError = rememberSaveable { mutableStateOf(false) }
     val isEmailError = rememberSaveable { mutableStateOf(false) }

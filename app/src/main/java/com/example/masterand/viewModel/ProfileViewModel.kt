@@ -7,10 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.masterand.model.Profile
 import com.example.masterand.repository.ProfileRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProfileViewModel(private val profileRepository: ProfileRepository): ViewModel() {
+@HiltViewModel
+class ProfileViewModel @Inject constructor(private val profileRepository: ProfileRepository): ViewModel() {
     var profileId by mutableStateOf(0L)
         private set
     var name by mutableStateOf("")

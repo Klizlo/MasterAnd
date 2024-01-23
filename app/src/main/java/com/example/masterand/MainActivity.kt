@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import dagger.hilt.android.AndroidEntryPoint
 import navigation.SetupNavGraph
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     lateinit var navHostController: NavHostController

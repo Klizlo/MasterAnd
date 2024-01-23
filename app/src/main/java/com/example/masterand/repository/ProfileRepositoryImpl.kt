@@ -3,8 +3,9 @@ package com.example.masterand.repository
 import com.example.masterand.dao.ProfileDao
 import com.example.masterand.model.Profile
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-class ProfileRepositoryImpl(private val profileDao: ProfileDao) : ProfileRepository {
+class ProfileRepositoryImpl @Inject constructor(private val profileDao: ProfileDao) : ProfileRepository {
     override fun getAllProfileStream(): Flow<List<Profile>> {
         return profileDao.getAllProfiles()
     }

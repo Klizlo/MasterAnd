@@ -22,6 +22,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -32,7 +33,11 @@ import navigation.Screen
 
 @Composable
 fun ResultScreen(navController: NavHostController, profileId: Long, colorNumber: Int, recentScore: Int,
-                 profileWithScoreViewModel: ProfileWithScoreViewModel = viewModel( factory = AppViewModelProvider.Factory)) {
+                 // bez wstrzykiwania
+//                 profileWithScoreViewModel: ProfileWithScoreViewModel = viewModel( factory = AppViewModelProvider.Factory)
+                 // przy użyciu hilt
+                 profileWithScoreViewModel: ProfileWithScoreViewModel = hiltViewModel<ProfileWithScoreViewModel>()
+) {
 
     val scores by profileWithScoreViewModel.profileWithScore.collectAsState()
 
