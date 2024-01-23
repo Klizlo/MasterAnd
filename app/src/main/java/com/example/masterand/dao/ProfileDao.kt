@@ -14,11 +14,14 @@ interface ProfileDao {
     @Query("select * from profiles")
     fun getAllProfiles(): Flow<List<Profile>>
 
-    @Query("select exists(select * from profiles where email = :email)")
-    fun existsByEmail(email: String): Flow<Boolean>
+    @Query("select * from profiles where id_profile = :profileId")
+    fun getProfileById(profileId: Long): Flow<Profile>
 
-    @Insert(onConflict = OnConflictStrategy.ABORT)
-    suspend fun insert(profile: Profile)
+    @Query("select * from profiles where email = :email")
+    fun getProfileByEmail(email: String): Flow<Profile>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(profile: Profile) : Long
 
     @Update
     suspend fun update(profile: Profile)

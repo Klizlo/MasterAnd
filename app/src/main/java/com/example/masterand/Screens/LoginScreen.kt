@@ -1,4 +1,4 @@
-package com.example.masterand
+package com.example.masterand.Screens
 
 import android.net.Uri
 import android.util.Patterns.EMAIL_ADDRESS
@@ -36,7 +36,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,31 +52,37 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.masterand.R
 import com.example.masterand.database.MasterAndDatabase
 import com.example.masterand.repository.ProfileRepository
 import com.example.masterand.repository.ProfileRepositoryImpl
+import com.example.masterand.viewModel.AppViewModelProvider
 import com.example.masterand.viewModel.ProfileViewModel
+import kotlinx.coroutines.launch
+import navigation.Screen
 
 @Composable
-fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewModel){
+fun LoginScreen(navController: NavHostController,
+                profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)){
 
-    val name = rememberSaveable{ mutableStateOf("") }
     val isNameError = rememberSaveable { mutableStateOf(false) }
-    val email = rememberSaveable{ mutableStateOf("") }
     val isEmailError = rememberSaveable { mutableStateOf(false) }
-    val number = rememberSaveable{ mutableStateOf("") }
+    var number by rememberSaveable{ mutableStateOf("") }
     val isNumberError = rememberSaveable { mutableStateOf(false) }
 
-    val imageUri = rememberSaveable{ mutableStateOf<Uri?>(null) }
+    var imageUri by rememberSaveable{ mutableStateOf<Uri?>(null) }
 
     val photoPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) {
-        imageUri.value = it
+        imageUri = it
     }
+
+    val coroutineScope = rememberCoroutineScope()
 
     //Animacje
     val infiniteTransition = rememberInfiniteTransition()
@@ -103,7 +111,7 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
                     transformOrigin = TransformOrigin.Center
                 }
             )
-        ProfileImageWithPicker(profileImageUri = imageUri.value, selectImageOnClick = {
+        ProfileImageWithPicker(profileImageUri = imageUri, selectImageOnClick = {
             photoPicker
                 .launch(PickVisualMediaRequest(ActivityResultContracts
                     .PickVisualMedia
@@ -114,14 +122,16 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
             label = "Enter Name",
             supportingText = "Name can't be empty",
             validation = { text: String -> text.isNotEmpty() },
-            text = name,
+            text = profileViewModel.name,
+            updateText = { profileViewModel.updateName(it) },
             isError = isNameError
         )
         OutlinedTextFieldWithError(
             label = "Enter email",
             supportingText = "Invalid email",
             validation = { text: String -> text.isNotEmpty() && EMAIL_ADDRESS.matcher(text).matches() },
-            text = email,
+            text = profileViewModel.email,
+            updateText = { profileViewModel.updateEmail(it) },
             isError = isEmailError
         )
         OutlinedTextFieldWithError(
@@ -129,24 +139,16 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
             supportingText = "Invalid number. Enter number between 4 and 7.",
             validation = { text: String -> text.isNotEmpty() && text.isDigitsOnly() && text.toInt() >= 4 && text.toInt() <= 7 },
             text = number,
+            updateText = { number = it },
             isError = isNumberError
         )
         Button(
             onClick = {
-//                Log.i("Tu", "LoginScreen: Tutu")
-//                if ( !isEmailError.value && !isNameError.value && !isNumberError.value) {
-//                    Log.i("TuTu", "LoginScreen: Tutututu")
-//                    if (profileViewModel.existsByEmail(email.value)) {
-//                        Log.i("TuTuTu", "LoginScreen: Tutututututu")
-//                        val profile : Profile = Profile(email = email.value, name = name.value)
-//                        profileViewModel.insertProfile(profile)
-//                        navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
-//                    } else {
-//                        isEmailError.value = true
-//                    }
-//                }
                 if(!isEmailError.value && !isNameError.value && !isNameError.value) {
-                    navController.navigate(route = Screen.Profile.route + "?uri=${imageUri.value}&username=${name.value}&email=${email.value}&number=${number.value}")
+                    coroutineScope.launch {
+                        profileViewModel.saveProfile()
+                        navController.navigate(route = Screen.Profile.route + "/${profileViewModel.profileId}/$number?uri=$imageUri")
+                    }
                 }
             },
             modifier = Modifier
@@ -160,13 +162,13 @@ fun LoginScreen(navController: NavHostController, profileViewModel: ProfileViewM
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OutlinedTextFieldWithError(label: String, supportingText: String, validation: (String)->Boolean,
-                               text: MutableState<String>, isError: MutableState<Boolean>){
+                               text: String, updateText: (String)->Unit, isError: MutableState<Boolean>){
 
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth(),
-        value = text.value,
-        onValueChange = { text.value = it },
+        value = text,
+        onValueChange = updateText,
         label = { Text(text = label)},
         singleLine = true,
         colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -176,7 +178,7 @@ fun OutlinedTextFieldWithError(label: String, supportingText: String, validation
         ),
         isError = isError.value,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        supportingText = { if (!validation(text.value)) {
+        supportingText = { if (!validation(text)) {
             Text(text = supportingText)
             isError.value = true
         } else {

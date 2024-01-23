@@ -1,4 +1,4 @@
-package com.example.masterand
+package com.example.masterand.Screens
 
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,9 +23,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.masterand.R
+import com.example.masterand.viewModel.AppViewModelProvider
+import com.example.masterand.viewModel.ProfileViewModel
+import navigation.Screen
 
 @Composable
 @Preview
@@ -32,15 +38,17 @@ fun ProfileScreenPreview() {
     ProfileScreen(
         navController = rememberNavController(),
         uri = null,
-        username = "Samwise Gamgee",
-        email = "sam.gamgee@bagend.sh" ,
+        profileId = 0L,
         number = 5)
 }
 
 @Composable
-fun ProfileScreen(navController: NavHostController, uri: String?, username: String?, email: String?, number: Int?) {
-
-    val colorNumber = number ?: 4
+fun ProfileScreen(navController: NavHostController, uri: String?, profileId: Long, number: Int, 
+                  profileViewModel: ProfileViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
+    
+    LaunchedEffect(key1 = profileViewModel.profileId) {
+        profileViewModel.getProfileById(profileId = profileId)
+    }
 
     Column (
         modifier = Modifier
@@ -54,16 +62,16 @@ fun ProfileScreen(navController: NavHostController, uri: String?, username: Stri
                 .fillMaxWidth()
         ) {
             ProfileImage(uri = if (uri == null) null else Uri.parse(uri))
-            Username(username = username ?: "")
-            Email(email = email ?: "")
-            NumberOfColors(number = colorNumber)
+            Username(username = profileViewModel.name)
+            Email(email = profileViewModel.email)
+            NumberOfColors(number = number)
         }
-        NavButtons(navController = navController, number = colorNumber)
+        NavButtons(navController = navController, number = number, profileId = profileId)
     }
 }
 
 @Composable
-fun NavButtons(navController: NavHostController, number: Number) {
+fun NavButtons(navController: NavHostController, number: Number, profileId: Long) {
     Row (
         modifier = Modifier
             .fillMaxWidth(),
@@ -72,7 +80,7 @@ fun NavButtons(navController: NavHostController, number: Number) {
         Button(onClick = { navController.navigate(route = Screen.Login.route) }) {
             Text(text = "LogOut")
         }
-        Button(onClick = { navController.navigate(route = Screen.Game.route+"?number=${number}") }) {
+        Button(onClick = { navController.navigate(route = Screen.Game.route+"/${profileId}/${number}") }) {
             Text(text = "Play")
         }
     }

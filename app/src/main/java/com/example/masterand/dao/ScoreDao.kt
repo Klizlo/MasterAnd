@@ -10,8 +10,6 @@ import com.example.masterand.model.Score
 interface ScoreDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    fun insertScore(score: Score)
+    suspend fun insertScore(score: Score)
 
-    @Update
-    fun updateScore(score: Score)
 }

@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.masterand.dao.ProfileDao
+import com.example.masterand.dao.ProfileWithScoreDao
 import com.example.masterand.dao.ScoreDao
 import com.example.masterand.model.Profile
 import com.example.masterand.model.Score
@@ -14,11 +15,16 @@ abstract class MasterAndDatabase: RoomDatabase() {
 
     abstract fun getProfileDao(): ProfileDao
     abstract fun getScoreDao(): ScoreDao
+    abstract fun getProfileWithScoreDao(): ProfileWithScoreDao
     companion object {
+        @Volatile
+        private var Instance: MasterAndDatabase? = null
         fun getDatabase(current: Context): MasterAndDatabase {
-            return Room
-                .databaseBuilder(current, MasterAndDatabase::class.java, "masterand-database")
-                .build()
+            return Room.databaseBuilder(
+                current,
+                MasterAndDatabase::class.java,
+                "masterand-database")
+                .build().also { Instance = it }
         }
     }
 }

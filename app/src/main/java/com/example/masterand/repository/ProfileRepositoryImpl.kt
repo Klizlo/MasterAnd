@@ -9,12 +9,16 @@ class ProfileRepositoryImpl(private val profileDao: ProfileDao) : ProfileReposit
         return profileDao.getAllProfiles()
     }
 
-    override fun existsByEmail(email: String): Flow<Boolean> {
-        return profileDao.existsByEmail(email)
+    override fun getProfileById(profileId: Long): Flow<Profile> {
+        return profileDao.getProfileById(profileId)
     }
 
-    override suspend fun insertProfile(profile: Profile) {
-        profileDao.insert(profile)
+    override fun getProfileByEmail(email: String): Flow<Profile> {
+        return profileDao.getProfileByEmail(email)
+    }
+
+    override suspend fun insertProfile(profile: Profile) : Long {
+        return profileDao.insert(profile)
     }
 
     override suspend fun updateProfile(profile: Profile) {

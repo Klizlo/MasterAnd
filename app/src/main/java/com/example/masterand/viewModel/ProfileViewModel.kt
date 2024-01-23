@@ -1,21 +1,44 @@
 package com.example.masterand.viewModel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.masterand.model.Profile
 import com.example.masterand.repository.ProfileRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ProfileViewModel(private val profileRepository: ProfileRepository): ViewModel() {
-    lateinit var profile: Profile
+    var profileId by mutableStateOf(0L)
+        private set
+    var name by mutableStateOf("")
+        private set
+    var email by mutableStateOf("")
+        private set
 
-    fun insertProfile(profile: Profile) {
-        viewModelScope.launch {
-            profileRepository.insertProfile(profile = profile)
+    fun updateProfileId(newProfileId: Long) {
+        profileId = newProfileId
+    }
+
+    fun updateName(newName: String) {
+        name = newName
+    }
+
+    fun updateEmail(newEmail: String) {
+        email = newEmail
+    }
+
+    suspend fun saveProfile() {
+        try {
+            val profile = profileRepository.getProfileByEmail(email).first()
+            val profileToUpdate = Profile(profile.id_profile, profile.name, profile.email)
+            profileRepository.updateProfile(profileToUpdate)
+            profileId = profile.id_profile
+        } catch (npe: NullPointerException) {
+            val profile = Profile(name = name, email = email)
+            profileId = profileRepository.insertProfile(profile)
         }
     }
 
@@ -28,9 +51,11 @@ class ProfileViewModel(private val profileRepository: ProfileRepository): ViewMo
         return allProfiles
     }
 
-//    fun existsByEmail(email: String) : Boolean {
-//        val result = viewModelScope.launch {
-//            return profileRepository.existsByEmail(email).first()
-//        }
-//    }
+    suspend fun getProfileById(profileId: Long) {
+        val profile = profileRepository.getProfileById(profileId).first()
+        this.profileId = profile.id_profile
+        this.name = profile.name
+        this.email = profile.email
+    }
+
 }

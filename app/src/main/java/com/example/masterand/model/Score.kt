@@ -5,8 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "scores")
 class Score (
-    @PrimaryKey
-    val id_score: Int = 0,
+    @PrimaryKey(autoGenerate = true)
+    val id_score: Long = 0,
     val points: Int,
-    val profile_id: Int
+    val id_profile: Long
 )

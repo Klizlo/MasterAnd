@@ -1,5 +1,6 @@
-package com.example.masterand
+package com.example.masterand.Screens
 
+import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -38,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,8 +48,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.masterand.viewModel.AppViewModelProvider
+import com.example.masterand.viewModel.ScoreViewModel
+import kotlinx.coroutines.launch
+import navigation.Screen
 import java.util.Collections
 
 @Composable
@@ -56,7 +63,7 @@ fun GameMainScreenPreview() {
 
     val navController = rememberNavController()
 
-    GameMainScreen(navController = navController, number = 4)
+    GameMainScreen(navController = navController, number = 4, profileId = 0L)
 }
 
 val gameColors = listOf(
@@ -70,7 +77,8 @@ val gameColors = listOf(
 )
 
 @Composable
-fun GameMainScreen(navController: NavHostController, number: Int?) {
+fun GameMainScreen(navController: NavHostController, number: Int, profileId: Long,
+                   scoreViewModel: ScoreViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
 
     val selectedColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }
     val feedbackColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }
@@ -83,8 +91,6 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
         mutableStateOf(selectRandomColors(availableColorList.value))
     }
 
-    val attempts = remember { mutableStateOf(1) }
-
     val rows = remember {
         mutableStateOf(1)
     }
@@ -92,9 +98,11 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
     val clickable = remember {
         mutableStateOf<List<Boolean>>(listOf(true))
     }
-
-    val showStartOverButton = remember {
-        mutableStateOf(false)
+    
+    val coroutineScope = rememberCoroutineScope()
+    
+    LaunchedEffect(key1 = scoreViewModel.profileId) {
+        scoreViewModel.profileId = profileId
     }
 
     Column (
@@ -103,7 +111,7 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        ScoreText(attempts = attempts.value)
+        ScoreText(attempts = scoreViewModel.points)
         LazyColumn(
             modifier = Modifier
                 .weight(2f),
@@ -129,7 +137,7 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
                         }
 
                         // Sprawdzamy czy numer wiersza odpowiada liczbie prób i czy przycisk jest klikalny
-                        if (rowIndex + 1 == attempts.value && clickable.value[rowIndex]){
+                        if (rowIndex + 1 == scoreViewModel.points && clickable.value[rowIndex]){
                             //jeśli tak to
                             feedbackColorList.value = feedbackColorList.value.toMutableList().apply {
                                 // sprawdzamy czy rozmiar listy kolorów z informacją zwrotną odpowiada liczbie wierszy
@@ -145,14 +153,18 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
                             }
 
                             //zwiększamy liczbę prób
-                            attempts.value++
+                            scoreViewModel.updatePoints(scoreViewModel.points+1)
 
                             //sprawdzamy czy użytkownik wygrał
                             val isWinner = feedbackColorList.value.last().all { it == Color.Red }
 
                             if(isWinner){
                                 // jeśli tak to
-                                showStartOverButton.value = true
+                                coroutineScope.launch {
+                                    scoreViewModel.insertScore()
+                                    Log.i("Hura", "GameMainScreen: Zapisało się")
+                                    navController.navigate(route = Screen.Results.route + "/$profileId/$number/${scoreViewModel.points}")
+                                }
                             } else {
                                 // w przeciwnym wypadku
                                 rows.value++
@@ -166,7 +178,7 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
                     },
                     onSelectColorClick = { buttonId ->
                         // Sprawdzamy czy numer wiersza odpowiada liczbie prób i czy przycisk jest klikalny
-                        if (rowIndex + 1 == attempts.value && clickable.value[rowIndex]) {
+                        if (rowIndex + 1 == scoreViewModel.points && clickable.value[rowIndex]) {
                             // jeśli tak to
                             selectedColorList.value = selectedColorList.value.toMutableList().apply {
                                 // sprawdzamy czy rozmiar listy wybranych kolorów odpowiada liczbie wierszy
@@ -185,18 +197,6 @@ fun GameMainScreen(navController: NavHostController, number: Int?) {
                 )
             }
         }
-        if(showStartOverButton.value){
-            StartOverButton(onClick = {
-                selectedColorList.value = emptyList()
-                feedbackColorList.value = emptyList()
-                attempts.value = 1
-                clickable.value = listOf(true)
-                showStartOverButton.value = false
-                rows.value = 1
-                availableColorList.value = gameColors.shuffled().take(number ?: 4)
-                correctColorList.value = selectRandomColors(availableColorList.value)
-            })
-        }
         BackButton(navController = navController)
     }
 }
@@ -210,13 +210,6 @@ fun BackButton(navController: NavHostController) {
         Button(onClick = { navController.popBackStack() }) {
             Text(text = "Back")
         }
-    }
-}
-
-@Composable
-fun StartOverButton(onClick: () -> Unit){
-    Button(modifier = Modifier.padding(20.dp), onClick = onClick) {
-        Text(text = "Start over")
     }
 }
 
