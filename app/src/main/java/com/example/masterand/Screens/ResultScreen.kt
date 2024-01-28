@@ -1,5 +1,6 @@
 package com.example.masterand.Screens
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,7 +33,7 @@ import com.example.masterand.viewModel.ProfileWithScoreViewModel
 import navigation.Screen
 
 @Composable
-fun ResultScreen(navController: NavHostController, profileId: Long, colorNumber: Int, recentScore: Int,
+fun ResultScreen(navController: NavHostController, profileId: Long, colorNumber: Int, recentScore: Int, uri: String?,
                  // bez wstrzykiwania
 //                 profileWithScoreViewModel: ProfileWithScoreViewModel = viewModel( factory = AppViewModelProvider.Factory)
                  // przy użyciu hilt
@@ -53,7 +54,7 @@ fun ResultScreen(navController: NavHostController, profileId: Long, colorNumber:
                 ListItem(profileWithScore = it)
             }
         }
-        GameButtons(navController = navController, profileId = profileId, colorNumber = colorNumber)
+        GameButtons(navController = navController, profileId = profileId, colorNumber = colorNumber, uri = uri)
     }
 
 }
@@ -124,11 +125,11 @@ fun ListItem(profileWithScore: ProfileWithScore) {
 @Preview(showBackground = true)
 @Composable
 fun GameButtonsPreview() {
-    GameButtons(profileId = 0L, colorNumber = 0)
+    GameButtons(profileId = 0L, colorNumber = 0, uri = null)
 }
 
 @Composable
-fun GameButtons(navController: NavHostController = rememberNavController(), profileId: Long, colorNumber: Int) {
+fun GameButtons(navController: NavHostController = rememberNavController(), profileId: Long, colorNumber: Int, uri: String?) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -138,7 +139,7 @@ fun GameButtons(navController: NavHostController = rememberNavController(), prof
         Button(onClick = { navController.navigate(route = Screen.Login.route) }) {
             Text(text = "Logout")
         }
-        Button(onClick = { navController.navigate(route = Screen.Game.route + "/$profileId/$colorNumber") }) {
+        Button(onClick = { navController.navigate(route = Screen.Game.route + "/$profileId/$colorNumber?uri=$uri") }) {
             Text(text = "Restart game")
         }
     }

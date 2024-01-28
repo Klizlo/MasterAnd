@@ -149,7 +149,7 @@ fun LoginScreen(navController: NavHostController,
         )
         Button(
             onClick = {
-                if(!isEmailError.value && !isNameError.value && !isNameError.value) {
+                if(!isEmailError.value && !isNumberError.value && !isNameError.value) {
                     coroutineScope.launch {
                         profileViewModel.saveProfile()
                         navController.navigate(route = Screen.Profile.route + "/${profileViewModel.profileId}/$number?uri=$imageUri")

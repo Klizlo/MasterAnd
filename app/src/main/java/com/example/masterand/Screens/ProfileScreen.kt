@@ -71,12 +71,12 @@ fun ProfileScreen(navController: NavHostController, uri: String?, profileId: Lon
             Email(email = profileViewModel.email)
             NumberOfColors(number = number)
         }
-        NavButtons(navController = navController, number = number, profileId = profileId)
+        NavButtons(navController = navController, number = number, profileId = profileId, uri = uri)
     }
 }
 
 @Composable
-fun NavButtons(navController: NavHostController, number: Number, profileId: Long) {
+fun NavButtons(navController: NavHostController, number: Number, profileId: Long, uri: String?) {
     Row (
         modifier = Modifier
             .fillMaxWidth(),
@@ -85,7 +85,7 @@ fun NavButtons(navController: NavHostController, number: Number, profileId: Long
         Button(onClick = { navController.navigate(route = Screen.Login.route) }) {
             Text(text = "LogOut")
         }
-        Button(onClick = { navController.navigate(route = Screen.Game.route+"/${profileId}/${number}") }) {
+        Button(onClick = { navController.navigate(route = Screen.Game.route+"/${profileId}/${number}?uri=$uri") }) {
             Text(text = "Play")
         }
     }

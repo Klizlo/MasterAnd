@@ -1,5 +1,6 @@
 package com.example.masterand.Screens
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
@@ -64,7 +65,7 @@ fun GameMainScreenPreview() {
 
     val navController = rememberNavController()
 
-    GameMainScreen(navController = navController, number = 4, profileId = 0L)
+    GameMainScreen(navController = navController, number = 4, profileId = 0L, uri = null)
 }
 
 val gameColors = listOf(
@@ -78,7 +79,7 @@ val gameColors = listOf(
 )
 
 @Composable
-fun GameMainScreen(navController: NavHostController, number: Int, profileId: Long,
+fun GameMainScreen(navController: NavHostController, number: Int, profileId: Long, uri: String?,
                    // bez wstrzykiwania
 //                   scoreViewModel: ScoreViewModel = viewModel(factory = AppViewModelProvider.Factory)
                    // przy użyciu hilt
@@ -168,7 +169,7 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
                                 coroutineScope.launch {
                                     scoreViewModel.insertScore()
                                     Log.i("Hura", "GameMainScreen: Zapisało się")
-                                    navController.navigate(route = Screen.Results.route + "/$profileId/$number/${scoreViewModel.points}")
+                                    navController.navigate(route = Screen.Results.route + "/$profileId/$number/${scoreViewModel.points}?uri=$uri")
                                 }
                             } else {
                                 // w przeciwnym wypadku
@@ -202,17 +203,17 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
                 )
             }
         }
-        BackButton(navController = navController)
+        BackButton(navController = navController, profileId, number, uri)
     }
 }
 
 @Composable
-fun BackButton(navController: NavHostController) {
+fun BackButton(navController: NavHostController, profileId: Long, number: Int, uri: String?) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
     ) {
-        Button(onClick = { navController.popBackStack() }) {
+        Button(onClick = { navController.navigate(Screen.Profile.route + "/$profileId/$number?uri=$uri") }) {
             Text(text = "Back")
         }
     }
