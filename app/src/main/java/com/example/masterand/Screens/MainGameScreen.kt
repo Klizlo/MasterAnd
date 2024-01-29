@@ -102,7 +102,7 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
     }
 
     val clickable = remember {
-        mutableStateOf<List<Boolean>>(listOf(true))
+        mutableStateOf<List<Boolean>>(listOf(false))
     }
     
     val coroutineScope = rememberCoroutineScope()
@@ -184,7 +184,7 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
                     },
                     onSelectColorClick = { buttonId ->
                         // Sprawdzamy czy numer wiersza odpowiada liczbie prób i czy przycisk jest klikalny
-                        if (rowIndex + 1 == scoreViewModel.points && clickable.value[rowIndex]) {
+                        if (rowIndex + 1 == scoreViewModel.points) {
                             // jeśli tak to
                             selectedColorList.value = selectedColorList.value.toMutableList().apply {
                                 // sprawdzamy czy rozmiar listy wybranych kolorów odpowiada liczbie wierszy
@@ -197,6 +197,13 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
                                     chosenColors = selectedColors,
                                     buttonId = buttonId
                                 )
+                            }
+                            // Sprawdza czy wszytskie kolory zostały wybrane
+                            if (selectedColorList.value[rowIndex].none { it == Color.White }) {
+                                // jeśli tak to ustawia, że można kliknac w przycisk sprawdzający sekwencję kolorów
+                                clickable.value = clickable.value.toMutableList().apply {
+                                    this[rowIndex] = true
+                                }
                             }
                         }
                     }
