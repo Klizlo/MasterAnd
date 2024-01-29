@@ -1,6 +1,5 @@
 package com.example.masterand.Screens
 
-import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
@@ -90,7 +89,7 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
     val feedbackColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }
 
     val availableColorList = remember {
-        mutableStateOf(gameColors.shuffled().take(number ?: 4))
+        mutableStateOf(gameColors.shuffled().take(number))
     }
 
     val correctColorList = remember {
