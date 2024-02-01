@@ -67,32 +67,69 @@ fun SetupNavGraph(navController: NavHostController) {
                 )
         }
 
-        composable(route = Screen.Game.route + "/{profileId}/{colorNumber}",
+        /**
+         * ZMIANA - route
+         */
+        composable(route = Screen.Game.route + "/{profileId}/{colorNumber}?uri={uri}",
             arguments = listOf(
                 navArgument("colorNumber") {type = NavType.IntType},
-                navArgument("profileId") {type = NavType.LongType}
+                navArgument("profileId") {type = NavType.LongType},
+                /**
+                 * ZMIANA
+                 */
+                navArgument("uri") {
+                    type = NavType.StringType
+                    defaultValue = null
+                    nullable = true
+                },
         )) {
             backStackEntry ->
 
             val number = backStackEntry.arguments?.getInt("colorNumber")!!
             val profileId = backStackEntry.arguments?.getLong("profileId")!!
 
-            GameMainScreen(navController = navController, number = number, profileId = profileId)
+            /**
+             * ZMIANA
+             */
+            val uri = backStackEntry.arguments?.getString("uri")
+
+            /**
+             * ZMIANA
+             */
+            GameMainScreen(navController = navController, number = number, profileId = profileId, uri = uri)
         }
 
-        composable(route = Screen.Results.route + "/{profileId}/{colorNumber}/{recentScore}",
+        /**
+         * ZMIANA - route
+         */
+        composable(route = Screen.Results.route + "/{profileId}/{colorNumber}/{recentScore}?uri={uri}",
             arguments = listOf(
                 navArgument("profileId") { type = NavType.LongType },
                 navArgument("colorNumber") { type = NavType.IntType },
-                navArgument("recentScore") {type = NavType.IntType}
+                navArgument("recentScore") {type = NavType.IntType},
+                /**
+                 * ZMIANA
+                 */
+                navArgument("uri") {
+                    type = NavType.StringType
+                    defaultValue = null
+                    nullable = true
+                },
         )) {
             backStackEntry -> 
             
             val profileId = backStackEntry.arguments?.getLong("profileId")!!
             val colorNumber = backStackEntry.arguments?.getInt("colorNumber")!!
             val recentScore = backStackEntry.arguments?.getInt("recentScore")!!
-            
-            ResultScreen(navController = navController, profileId = profileId, colorNumber = colorNumber, recentScore = recentScore)
+            /**
+             * ZMIANA
+             */
+            val uri = backStackEntry.arguments?.getString("uri")
+
+            /**
+             * ZMIANA
+             */
+            ResultScreen(navController = navController, profileId = profileId, colorNumber = colorNumber, recentScore = recentScore, uri = uri)
         }
     }
 }

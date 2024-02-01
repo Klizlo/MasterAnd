@@ -40,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +64,10 @@ fun GameMainScreenPreview() {
 
     val navController = rememberNavController()
 
-    GameMainScreen(navController = navController, number = 4, profileId = 0L)
+    /**
+     * ZMIANA
+     */
+    GameMainScreen(navController = navController, number = 4, profileId = 0L, uri = null)
 }
 
 val gameColors = listOf(
@@ -77,25 +81,39 @@ val gameColors = listOf(
 )
 
 @Composable
-fun GameMainScreen(navController: NavHostController, number: Int, profileId: Long,
+        /***
+         * ZMIANA w argumentach
+         */
+fun GameMainScreen(navController: NavHostController, number: Int, profileId: Long, uri: String?,
                    scoreViewModel: ScoreViewModel = viewModel(factory = AppViewModelProvider.Factory)) {
 
-    val selectedColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }
-    val feedbackColorList = remember { mutableStateOf<List<List<Color>>>(listOf()) }
-
-    val availableColorList = remember {
-        mutableStateOf(gameColors.shuffled().take(number ?: 4))
+    /**
+     * ZMIANY - dodanie rememberSaveable - pomocne przy przekręcaniu ekranu
+     */
+    val selectedColorList = rememberSaveable { mutableStateOf<List<List<Color>>>(listOf()) }
+    val feedbackColorList = rememberSaveable { mutableStateOf<List<List<Color>>>(listOf()) }
+    /**
+     * ZMIANY - dodanie rememberSaveable - pomocne przy przekręcaniu ekranu
+     */
+    val availableColorList = rememberSaveable {
+        mutableStateOf(gameColors.shuffled().take(number))
     }
-
-    val correctColorList = remember {
+    /**
+     * ZMIANY - dodanie rememberSaveable - pomocne przy przekręcaniu ekranu
+     */
+    val correctColorList = rememberSaveable {
         mutableStateOf(selectRandomColors(availableColorList.value))
     }
-
-    val rows = remember {
+    /**
+     * ZMIANY - dodanie rememberSaveable - pomocne przy przekręcaniu ekranu
+     */
+    val rows = rememberSaveable {
         mutableStateOf(1)
     }
-
-    val clickable = remember {
+    /**
+     * ZMIANY - dodanie rememberSaveable - pomocne przy przekręcaniu ekranu
+     */
+    val clickable = rememberSaveable {
         mutableStateOf<List<Boolean>>(listOf(true))
     }
     
@@ -162,8 +180,7 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
                                 // jeśli tak to
                                 coroutineScope.launch {
                                     scoreViewModel.insertScore()
-                                    Log.i("Hura", "GameMainScreen: Zapisało się")
-                                    navController.navigate(route = Screen.Results.route + "/$profileId/$number/${scoreViewModel.points}")
+                                    navController.navigate(route = Screen.Results.route + "/$profileId/$number/${scoreViewModel.points}?uri=$uri")
                                 }
                             } else {
                                 // w przeciwnym wypadku
@@ -192,17 +209,33 @@ fun GameMainScreen(navController: NavHostController, number: Int, profileId: Lon
                                     buttonId = buttonId
                                 )
                             }
+                            /**
+                             * ZMIANA
+                             */
+                            // Sprawdza czy wszytskie kolory zostały wybrane
+                            if (selectedColorList.value[rowIndex].none { it == Color.White }) {
+                                // jeśli tak to ustawia, że można kliknac w przycisk sprawdzający sekwencję kolorów
+                                clickable.value = clickable.value.toMutableList().apply {
+                                    this[rowIndex] = true
+                                }
+                            }
                         }
                     }
                 )
             }
         }
-        BackButton(navController = navController)
+        /**
+         * ZMIANA
+         */
+        BackButton(navController = navController, profileId, number, uri)
     }
 }
 
 @Composable
-fun BackButton(navController: NavHostController) {
+        /**
+         * ZMIANA
+         */
+fun BackButton(navController: NavHostController, profileId: Long, number: Int, uri: String?) {
     Row (
         modifier = Modifier
             .fillMaxWidth()
@@ -225,20 +258,23 @@ fun ScoreText(attempts: Int) {
 
 @Composable
 fun CircularButton(onClick: () -> Unit, color: Color) {
-    var animateColor by remember { mutableStateOf(false) }
-    val animatedColor by animateColorAsState(
-        targetValue = if (animateColor) color else Color.White,
-        animationSpec = repeatable(4, animation = tween(500), repeatMode = RepeatMode.Reverse)
-    )
+    /**
+     * ZMIANA - usnięcię animate color i animatedColor
+     */
     Button(modifier = Modifier
         .size(50.dp)
         .background(color = MaterialTheme.colorScheme.background),
         border = BorderStroke(width = 2.dp, MaterialTheme.colorScheme.outline),
-        colors = ButtonDefaults.buttonColors(containerColor = animatedColor,
+        /**
+         * ZMIANA na color
+         */
+        colors = ButtonDefaults.buttonColors(containerColor = color,
             contentColor = MaterialTheme.colorScheme.onBackground),
         onClick = {
             onClick()
-            animateColor = true
+            /**
+             * ZMIANA
+             */
         }) {
 
     }
@@ -265,17 +301,9 @@ fun SmallCircle(color: Color) {
 @Composable
 fun FeedbackCircles(colors: List<Color>) {
 
-    val colorAnimation0 = remember { Animatable(Color.White) }
-    val colorAnimation1 = remember { Animatable(Color.White) }
-    val colorAnimation2 = remember { Animatable(Color.White) }
-    val colorAnimation3 = remember { Animatable(Color.White) }
-
-    LaunchedEffect(colors) {
-        colorAnimation0.animateTo(colors.getOrElse(0) { Color.White}, animationSpec = tween(500))
-        colorAnimation1.animateTo(colors.getOrElse(1) { Color.White}, animationSpec = tween(500))
-        colorAnimation2.animateTo(colors.getOrElse(2) { Color.White}, animationSpec = tween(500))
-        colorAnimation3.animateTo(colors.getOrElse(3) { Color.White}, animationSpec = tween(500))
-    }
+    /**
+     * ZMIANA - usunięcie colorAnimation1..3
+     */
 
     Column (
         modifier = Modifier.width(80.dp),
@@ -286,16 +314,22 @@ fun FeedbackCircles(colors: List<Color>) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.width(80.dp)
             ) {
-                SmallCircle(color = colorAnimation0.value)
-                SmallCircle(color = colorAnimation1.value)
+            /**
+             * ZMIANA
+             */
+                SmallCircle(color = colors.getOrElse(0) {Color.White})
+                SmallCircle(color = colors.getOrElse(1) {Color.White})
         }
         Row (
             horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.width(80.dp)
         ) {
-            SmallCircle(color = colorAnimation2.value)
-            SmallCircle(color = colorAnimation3.value)
+            /**
+             * ZMIANA
+             */
+            SmallCircle(color = colors.getOrElse(2) {Color.White})
+            SmallCircle(color = colors.getOrElse(3) {Color.White})
         }
     }
 }
@@ -307,34 +341,15 @@ fun GameRow(chosenColors: List<Color>,
             onSelectColorClick: (Int) -> Unit,
             onCheckClick: () -> Unit) {
 
-    var rowVisible by remember { mutableStateOf(false) }
+    /**
+     * ZMIANA
+     */
 
-    LaunchedEffect(Unit) {
-        rowVisible = true
-    }
-
-    val visibleState = remember { MutableTransitionState(false) }
-    if (visibleState.targetState != isClicked)
-        visibleState.targetState = isClicked
-
-    AnimatedVisibility(visible = rowVisible, enter = expandVertically(expandFrom = Alignment.Top)) {
-        Row {
-            SelectableColorRow(colors = chosenColors,
-                onClick = onSelectColorClick)
-            AnimatedVisibility(visibleState = visibleState, enter = scaleIn(), exit = scaleOut()) {
-                CheckButton(enabled = isClicked, onCheckClick = onCheckClick)
-            }
-            if (visibleState.isIdle && !visibleState.currentState) {
-                // gdy przycisk zatwierdzenia jest niewidoczny
-                Box(
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .size(50.dp)
-                        .background(Color.White)
-                )
-            }
-            FeedbackCircles(colors = feedbackColors)
-        }
+    Row {
+        SelectableColorRow(colors = chosenColors,
+            onClick = onSelectColorClick)
+        CheckButton(enabled = isClicked, onCheckClick = onCheckClick)
+        FeedbackCircles(colors = feedbackColors)
     }
 }
 

@@ -84,13 +84,9 @@ fun LoginScreen(navController: NavHostController,
 
     val coroutineScope = rememberCoroutineScope()
 
-    //Animacje
-    val infiniteTransition = rememberInfiniteTransition()
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1.2F,
-        targetValue = 0.8F,
-        animationSpec = infiniteRepeatable(tween(1000), RepeatMode.Reverse)
-    )
+    /**
+     * USUNIĘTA ANIMACJA
+     */
 
     Column (
         modifier = Modifier
@@ -105,11 +101,9 @@ fun LoginScreen(navController: NavHostController,
             style = MaterialTheme.typography.displayLarge,
             modifier = Modifier
                 .padding(bottom = 48.dp)
-                .graphicsLayer {
-                    scaleX = scale
-                    scaleY = scale
-                    transformOrigin = TransformOrigin.Center
-                }
+            /**
+             * USUNIETA ANIMACJA
+             */
             )
         ProfileImageWithPicker(profileImageUri = imageUri, selectImageOnClick = {
             photoPicker
@@ -144,7 +138,11 @@ fun LoginScreen(navController: NavHostController,
         )
         Button(
             onClick = {
-                if(!isEmailError.value && !isNameError.value && !isNameError.value) {
+                /**
+                 *
+                 * NAPRAWIONE zamiast isNameError == isNumber Error
+                 */
+                if(!isEmailError.value && !isNumberError.value && !isNameError.value) {
                     coroutineScope.launch {
                         profileViewModel.saveProfile()
                         navController.navigate(route = Screen.Profile.route + "/${profileViewModel.profileId}/$number?uri=$imageUri")
